@@ -21,7 +21,7 @@ Read it as a web page (GitHub Pages link here) or as a [PDF](AMT-130_investment_
 
 ## Method
 
-Built on my [PoS + rNPV model](link to the model repo) for Huntington's disease assets. Every quantitative input traces to a public source in the memo's 31 references; every assumption that doesn't is labelled as mine. Frozen at the 1 October 2026 close; four-year data (29 September 2026) included.
+Built on my [PoS + rNPV model] (https://pos-rnpv-model.vercel.app/#start) for Huntington's disease assets. Every quantitative input traces to a public source in the memo's 31 references; every assumption that doesn't is labelled as mine. Frozen at the 1 October 2026 close; four-year data (29 September 2026) included.
 
 ## Disclaimer
 
