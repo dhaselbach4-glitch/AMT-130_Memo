@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMT-130 (uniQure, QURE): investment memo · Daniel Haselbach</title>
+<meta name="description" content="Buy QURE at $23.37: after tax and development costs, AMT-130 alone is worth $30.04 per fully diluted share. Investment memo built on the PoS + rNPV model.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1b2420;
+    --body:#3d4642;
+    --muted:#6b7570;
+    --rule:#e2e8e4;
+    --panel:#f5f7f6;
+    --green:#4e8a68;
+    --green-deep:#3b6e52;
+    --green-wash:#e3ede7;
+    --down:#a2554b;
+    --down-wash:#f3e6e3;
+    --price:#1b2420;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:#fff;color:var(--body);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:17px;line-height:1.65;font-feature-settings:"tnum" 1,"cv11" 1}
+  a{color:var(--green-deep);text-decoration-thickness:1px;text-underline-offset:2px}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:3px}
+
+  /* top bar, as in the model */
+  .bar{border-bottom:1px solid var(--rule);background:#fff}
+  .bar-in{max-width:1120px;margin:0 auto;padding:18px 28px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .mark{font-weight:700;font-size:19px;color:var(--ink);text-decoration:none;letter-spacing:-.01em}
+  .mark span{color:var(--green)}
+  .bar-sub{color:var(--muted);font-size:14px}
+  .bar-link{margin-left:auto;font-size:14px;font-weight:500}
+
+  .wrap{max-width:760px;margin:0 auto;padding:0 28px}
+
+  /* hero */
+  .hero{padding:76px 0 40px}
+  .kicker{color:var(--green);font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:0 0 18px}
+  h1{color:var(--ink);font-size:clamp(32px,5.2vw,50px);line-height:1.1;letter-spacing:-.025em;font-weight:800;margin:0 0 22px}
+  .lede{font-size:19px;color:var(--body);margin:0 0 14px;max-width:68ch}
+  .byline{color:var(--muted);font-size:15px;margin:0 0 30px}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .btn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:600;padding:13px 22px;border-radius:7px;font-size:16px}
+  .btn:hover{background:var(--green-deep)}
+  .btn.ghost{background:#fff;color:var(--green-deep);border:1px solid var(--rule)}
+  .btn.ghost:hover{border-color:var(--green)}
+
+  /* the one bold element: every case against the price */
+  .cases{margin:44px 0 0;padding:30px 0 0;border-top:1px solid var(--rule)}
+  .cases h2{font-size:18px;margin:0 0 4px;color:var(--ink);letter-spacing:-.01em}
+  .cases .note{font-size:14.5px;color:var(--muted);margin:0 0 22px}
+  .plot{--lo:15;--hi:35;position:relative}
+  .row{display:grid;grid-template-columns:230px 1fr;align-items:center;gap:16px;min-height:38px}
+  .row .lab{font-size:14.5px;color:var(--ink);line-height:1.3}
+  .row .lab small{display:block;color:var(--muted);font-size:12.5px}
+  .track{position:relative;height:38px}
+  .track::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--rule)}
+  .track::after{content:"";position:absolute;top:-1px;bottom:-1px;left:calc((23.37 - 15) / 20 * 100%);border-left:2px solid var(--price)}
+  .dot{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;transform:translate(-50%,-50%);background:var(--green);box-shadow:0 0 0 3px #fff}
+  .dot.dn{background:var(--down)}
+  .dot.even{background:#fff;border:2px solid var(--price)}
+  .val{position:absolute;top:50%;transform:translate(10px,-50%);font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap}
+  .val.left{transform:translate(calc(-100% - 10px),-50%)}
+  .row.base .lab{font-weight:700}
+  .row.base .dot{width:16px;height:16px;background:var(--green-deep)}
+  .axis{display:grid;grid-template-columns:230px 1fr;gap:16px;margin-top:6px}
+  .ticks{position:relative;height:22px;font-size:12.5px;color:var(--muted)}
+  .ticks span{position:absolute;transform:translateX(-50%)}
+  .ticks .p{color:var(--ink);font-weight:700}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:14px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+  /* memo body */
+  main{padding:20px 0 40px}
+  .disclaimer{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:16px 20px;font-size:14.5px;color:var(--muted);margin:10px 0 56px}
+  .sec{margin:0 0 56px}
+  .sec-num{display:block;color:var(--green);font-weight:700;font-size:15px;margin-bottom:6px}
+  h2.sec-h{color:var(--ink);font-size:28px;line-height:1.2;letter-spacing:-.02em;margin:0 0 22px;font-weight:750}
+  p{margin:0 0 18px}
+  p strong{color:var(--ink)}
+  .item{margin:0 0 20px}
+  .item-h{color:var(--ink);font-weight:700}
+  .adj{display:inline-block;min-width:3.2em;font-weight:800;color:var(--green-deep)}
+  .adj.neg{color:var(--down)}
+  .ref{font-size:.78em;vertical-align:.32em;line-height:0;text-decoration:none;color:var(--green-deep);font-weight:600;padding:0 1px}
+  .ref:hover{text-decoration:underline}
+
+  /* PoS build */
+  .build{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:22px 22px 16px;margin:6px 0 30px}
+  .build-h{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:14px}
+  .build-h b{color:var(--ink)}
+  .wf{display:grid;grid-template-columns:150px 1fr 56px;gap:6px 14px;align-items:center}
+  .wf .l{font-size:13.5px;color:var(--ink)}
+  .wf .n{font-size:13.5px;font-weight:700;text-align:right;color:var(--ink)}
+  .wf .t{position:relative;height:18px;background:#fff;border-radius:3px}
+  .wf .b{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--green)}
+  .wf .b.neg{background:var(--down)}
+  .wf .b.anchor{background:#9db8a8}
+  .wf .b.res{background:var(--green-deep)}
+  .wf .scale{grid-column:2;display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+  /* sources */
+  .sources{border-top:1px solid var(--rule);padding-top:40px}
+  .sources h2{font-size:22px;color:var(--ink);margin:0 0 18px}
+  .sources ol{padding-left:0;list-style:none;margin:0;font-size:14px;line-height:1.55}
+  .sources li{display:grid;grid-template-columns:42px 1fr;margin:0 0 12px}
+  .sources li .k{color:var(--green-deep);font-weight:700}
+  .sources a{word-break:break-all}
+  .sources li:target{background:var(--green-wash);border-radius:6px}
+
+  footer{border-top:1px solid var(--rule);background:var(--panel);margin-top:40px}
+  footer .wrap{padding:28px;font-size:14px;color:var(--muted)}
+
+  @media (max-width:640px){
+    body{font-size:16px}
+    .hero{padding:48px 0 28px}
+    .row,.axis{grid-template-columns:1fr;gap:0}
+    .axis > div:first-child{display:none}
+    .row{padding-top:8px}
+    .track,.ticks{margin:0 52px 0 16px}
+    .wf{grid-template-columns:100px 1fr 46px}
+    .bar-link{margin-left:0}
+  }
+  @media print{
+    .bar,.actions,footer{display:none}
+    .hero{padding-top:0}
+    a{color:inherit}
+    /* keep the chart dots and PoS bars: browsers drop background colours when printing */
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .cases,.build,.row,.sources li{break-inside:avoid}
+    h2{break-after:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <a class="mark" href="#top">PoS <span>+ rNPV</span></a>
+    <span class="bar-sub">Case study: AMT-130, Huntington's disease</span>
+    <a class="bar-link" href="AMT-130_investment_memo.pdf" data-pdf>PDF version</a>
+  </div>
+</header>
+
+<div class="wrap" id="top">
+  <section class="hero">
+    <p class="kicker">Investment memo · uniQure (NASDAQ: QURE)</p>
+    <h1>AMT-130 alone is worth $30.04 a share. The stock closed at $23.37.</h1>
+    <p class="lede">After tax and development costs, my risked value for uniQure's Huntington's gene therapy is 29% above the 1 October 2026 close. The gap is a disagreement on approval, and whether it pays depends on how many neurosurgical centres can deliver an 8–10 hour procedure.</p>
+    <p class="byline">Daniel Haselbach · Frozen at the 1 October 2026 close; four-year data (29 September 2026) included</p>
+    <div class="actions">
+      <a class="btn" href="#memo">Read the memo</a>
+      <a class="btn ghost" href="AMT-130_investment_memo.pdf" download="AMT-130_investment_memo.pdf" data-pdf>Download PDF</a>
+    </div>
+
+    <div class="cases" aria-labelledby="cases-h">
+      <h2 id="cases-h">Every case against the price</h2>
+      <p class="note">Fair value per fully diluted share at a 58% PoS. The black line is the $23.37 close.</p>
+      <div class="plot" role="img" aria-label="Fair value by case: High 31.65, Base 30.04, protection ends 2035 27.11, 60% treated 26.49, 50% treated 23.94, slip to 2029 23.50, prices 31% lower 23.37, Low capacity 17.94. Price 23.37.">
+        <div class="row"><div class="lab">High capacity<small>55 centres × 40 cases</small></div><div class="track"><span class="dot" style="left:83.25%"></span><span class="val" style="left:83.25%">$31.65</span></div></div>
+        <div class="row base"><div class="lab">Base case<small>55 centres × 25 cases</small></div><div class="track"><span class="dot" style="left:75.2%"></span><span class="val" style="left:75.2%">$30.04</span></div></div>
+        <div class="row"><div class="lab">Protection ends with 2035</div><div class="track"><span class="dot" style="left:60.55%"></span><span class="val" style="left:60.55%">$27.11</span></div></div>
+        <div class="row"><div class="lab">60% of eligible pool treated</div><div class="track"><span class="dot" style="left:57.45%"></span><span class="val" style="left:57.45%">$26.49</span></div></div>
+        <div class="row"><div class="lab">50% of eligible pool treated</div><div class="track"><span class="dot" style="left:44.7%"></span><span class="val" style="left:44.7%">$23.94</span></div></div>
+        <div class="row"><div class="lab">Approval slips to 2029</div><div class="track"><span class="dot" style="left:42.5%"></span><span class="val" style="left:42.5%">$23.50</span></div></div>
+        <div class="row"><div class="lab">Prices 31% below Leerink's</div><div class="track"><span class="dot even" style="left:41.85%"></span><span class="val left" style="left:41.85%">$23.37</span></div></div>
+        <div class="row"><div class="lab">Low capacity<small>40 centres × 12 cases</small></div><div class="track"><span class="dot dn" style="left:14.7%"></span><span class="val" style="left:14.7%">$17.94</span></div></div>
+        <div class="axis"><div></div><div class="ticks"><span style="left:0">$15</span><span style="left:25%">$20</span><span class="p" style="left:41.85%">$23.37</span><span style="left:75%">$30</span><span style="left:100%">$35</span></div></div>
+      </div>
+      <div class="legend"><span><i style="background:var(--green)"></i>Above the price</span><span><i style="background:#fff;border:2px solid var(--price)"></i>At the price</span><span><i style="background:var(--down)"></i>Below the price</span></div>
+    </div>
+  </section>
+</div>
+
+<main class="wrap" id="memo">
+
+  <p class="disclaimer">This memo is the author's independent analysis, prepared for educational purposes. It is not investment advice or a recommendation to buy or sell any security. The author holds no position in uniQure N.V. (NASDAQ: QURE) and received no compensation for this work. Information is as of the 1 October 2026 close and may have changed.</p>
+
+  <p>Frozen at the 1 October 2026 close: $23.37 (Nasdaq). Balance sheet 30 June 2026 (Q2 10-Q), cash rolled to an estimated 30 September. Four-year data (29 September 2026) included. Per-share figures fully diluted, options treated as exercised at fair value.</p>
+
+  <section class="sec" id="call">
+    <span class="sec-num">1</span>
+    <h2 class="sec-h">The call</h2>
+    <p>Buy QURE at $23.37 (1 October 2026 close): after tax and development costs, AMT-130 alone is worth $30.04 per fully diluted share, 29% upside. The upside comes from approval: my cash flows are worth the price at a 40% probability of success (PoS), and I put it at 58% (section 2). Whether that upside is paid depends on surgical capacity. Each dose is an 8–10 hour neurosurgery, and most of the centres my base case needs have not yet performed it. If they reach my base case, the FDA's accelerated-approval decision, which I model for mid-2027, closes the gap; if they stall, no defensible PoS supports even today's price (section 4). uniQure's launch-strategy update, due early 2027, tests the capacity case before the FDA decides. The upside does not survive a slip to 2029 ($23.50) or treatment of only half the eligible pool ($23.94).</p>
+  </section>
+
+  <section class="sec" id="pos">
+    <span class="sec-num">2</span>
+    <h2 class="sec-h">Probability of success: 58%</h2>
+    <p>58% is my probability that AMT-130 is approved and keeps that approval through the confirmatory study. The base case times approval for mid-2027; a slip to 2029 is a separate downside case (section 4).</p>
+
+    <div class="build" role="img" aria-label="PoS build: anchor 86.7, minus 30, plus 3, minus 5, minus 2, plus 5, result 58 percent.">
+      <div class="build-h"><span><b>The build</b>, in percentage points</span><span>86.7 − 30 + 3 − 5 − 2 + 5, rounded: <b>58%</b></span></div>
+      <div class="wf">
+        <span class="l">Anchor</span><span class="t"><span class="b anchor" style="left:0;width:86.7%"></span></span><span class="n">86.7</span>
+        <span class="l">Evidence fragility</span><span class="t"><span class="b neg" style="left:56.7%;width:30%"></span></span><span class="n">−30</span>
+        <span class="l">June FDA position</span><span class="t"><span class="b" style="left:56.7%;width:3%"></span></span><span class="n">+3</span>
+        <span class="l">Advisory committee</span><span class="t"><span class="b neg" style="left:54.7%;width:5%"></span></span><span class="n">−5</span>
+        <span class="l">Confirmatory timing</span><span class="t"><span class="b neg" style="left:52.7%;width:2%"></span></span><span class="n">−2</span>
+        <span class="l">Unmet need</span><span class="t"><span class="b" style="left:52.7%;width:5%"></span></span><span class="n">+5</span>
+        <span class="l"><b>PoS</b></span><span class="t"><span class="b res" style="left:0;width:57.7%"></span></span><span class="n">58%</span>
+        <span class="scale"><span>0</span><span>50</span><span>100</span></span>
+      </div>
+    </div>
+
+    <p class="item"><span class="item-h">Anchor: 86.7%</span>, the NDA/BLA-to-approval success rate for neurology over 2011–2020 (n=165; Wilson 95% interval 80.6–91.0%, my calculation) <a class="ref" href="#s1">[1]</a>. Not the ~46% Phase III-to-approval rate: that multiplies in a 53.1% chance of reaching a filing <a class="ref" href="#s1">[1]</a>, and uniQure has filed.</p>
+
+    <p class="item"><span class="adj neg">−30</span><span class="item-h">The benefit is measured against a control the sponsor built, and the control has moved.</span> The BLA rests on 12 high-dose patients at 36 months compared with 940 propensity-matched patients from the Enroll-HD natural-history study <a class="ref" href="#s2">[2]</a>. The four-year analysis uses a different comparator, a newer Enroll-HD release in which 53% of the matched controls' 48-month data are missing; against it, the cUHDRS effect fell to 44% and lost significance (p=0.144) <a class="ref" href="#s3">[3]</a>. uniQure now argues that the controls who dropped out were declining faster, so its own control understates progression <a class="ref" href="#s3">[3]</a>. That may be right, and it is the problem: rebuild the comparator and the effect moves with it. No multiplicity procedure is disclosed across the five endpoints; at 48 months the company labels every p-value except the primary as nominal <a class="ref" href="#s3">[3]</a>; at 36 months SDMT (p=0.057) and TMS (p=0.1741) missed <a class="ref" href="#s4">[4]</a>. Propensity matching assumes matched patients progress alike, yet patients with PIN prognostic scores near zero go on to enlarge their ventricles by 100 to 3,000 mm³ a year <a class="ref" href="#s5">[5]</a>. None of this says the effect is small: a 1.14-point cUHDRS gap at 36 months (−0.38 vs −1.52) is not small if it is real <a class="ref" href="#s4">[4]</a>. It says this comparison cannot show that it is.</p>
+
+    <p class="item"><span class="adj">+3</span><span class="item-h">The June position, net of how often the FDA has moved.</span> In March 2026 the FDA said the external-control data could not be the primary evidence and "strongly recommended" a randomized, double-blind, sham-surgery-controlled study <a class="ref" href="#s2">[2]</a>. In June, per uniQure's 8-K, it said the three-year analysis "would be acceptable as the primary basis of a BLA for the accelerated approval of AMT-130" <a class="ref" href="#s8">[8]</a>. The official minutes, received in July, read weaker in uniQure's own account: they confirmed alignment that a BLA submission "is reasonable" <a class="ref" href="#s11">[11]</a>. That gap does not move the number. Two months later, with the minutes in hand, uniQure still wrote "acceptable as the primary basis" <a class="ref" href="#s3">[3]</a>, and the credit needs only the weaker wording: it is for what the FDA will review, not what it will conclude. June is worth +8. I take 5 back because it was the agency's fourth position in nineteen months, after agreeing in November 2024 <a class="ref" href="#s6">[6]</a>, withdrawing that agreement in November 2025 <a class="ref" href="#s7">[7]</a> and the March recommendation, from an agency that, in a senior official's words, "as a general rule, never makes such assurances" <a class="ref" href="#s9">[9]</a>. Filing itself earns nothing: the anchor already starts from filed applications.</p>
+
+    <p class="item"><span class="adj neg">−5</span><span class="item-h">Advisory committee.</span> Management "most likely" expects one <a class="ref" href="#s10">[10]</a>. The deduction is for the process: a public vote on contested evidence, by members who were not in the June meeting. Before the June reversal, a senior FDA official, speaking anonymously, called AMT-130 a "failed product" <a class="ref" href="#s9">[9]</a>. That is evidence of what the review division brings into the room, not another position change.</p>
+
+    <p class="item"><span class="adj neg">−2</span><span class="item-h">Confirmatory timing.</span> uniQure says the FDA wants the confirmatory study "well underway, and potentially fully enrolled, at the time of accelerated approval" <a class="ref" href="#s11">[11]</a>; screening is targeted to start only before the end of 2026 <a class="ref" href="#s12">[12]</a>.</p>
+
+    <p class="item"><span class="adj">+5</span><span class="item-h">Unmet need.</span> No available therapy delays onset or slows progression of Huntington's disease <a class="ref" href="#s2">[2]</a>.</p>
+
+    <p>86.7 − 30 + 3 − 5 − 2 + 5, rounded: 58%. The anchor is a measured rate; the adjustments are my judgement.</p>
+
+    <p><strong>The confirmatory study sits inside the −30, not in a separate deduction.</strong> The 58% includes keeping the approval. The −30 is my doubt that the effect is real; a randomized study against standard of care removes the comparator problem and answers that same question later, so I do not charge for it twice. The argument has one weak point: the confirmatory primary endpoint, total functional capacity at 36 months <a class="ref" href="#s10">[10]</a>, held at 61% slowing at four years (nominal p=0.008) <a class="ref" href="#s3">[3]</a>, but against the same external control. A fading effect threatens the approval and invites outcomes-based payer contracts; it also sits inside the 58%, not in a separate revenue haircut.</p>
+
+    <p><strong>Where I sit.</strong> At $23.37 my cash flows are worth the price at a 40% PoS. That is not the market's probability but the one that reconciles my model with the price, and an upper bound on it, because the rest of the pipeline gets zero. Leerink carried 75% for the US in June, on larger cash flows than mine <a class="ref" href="#s13">[13]</a>; after the readout, Stifel called the three-year cut "the crux of QURE's alignment with FDA" <a class="ref" href="#s14">[14]</a>. I sit at 58%: below the sell side because the comparator is fragile, above 40% because uniQure repeated the June wording after the official minutes, filed its BLA on it, and the FDA has not publicly contradicted it. The June position reaches me only through uniQure's account, which is why I stop at 58%.</p>
+  </section>
+
+  <section class="sec" id="rnpv">
+    <span class="sec-num">3</span>
+    <h2 class="sec-h">rNPV $1,528M; equity value $30.04 a share</h2>
+
+    <p><strong>Method.</strong> Revenue is patients treated times price, limited each year by surgical capacity and in total by the eligible pool. Contribution is 51% of revenue, my assumption, set at the margin Sarepta earned on 2024 product sales after cost of sales and SG&amp;A <a class="ref" href="#s15">[15]</a>. A 5% Cold Spring Harbor royalty runs to 2031; the 10-K says only "single-digit" and that the licensed patents expire in 2031 <a class="ref" href="#s2">[2]</a>, so both are my assumptions. AMT-130 R&amp;D is held at its FY2025 level of $42.5M a year <a class="ref" href="#s2">[2]</a> from Q4 2026 through 2031, my assumption, and profit after R&amp;D is taxed at 21% <a class="ref" href="#s2">[2]</a>. Cash flows are discounted to 1 October 2026 at 8.49%, Damodaran's January 2026 cost of capital for biotechnology <a class="ref" href="#s16">[16]</a>, and the contribution is risked at 58% (R&amp;D is not): an rNPV of $1,528M.</p>
+
+    <p>To reach equity I add cash rolled to an estimated $766.9M at 30 September ($810.3M reported at 30 June <a class="ref" href="#s11">[11]</a>, less a quarter of underlying burn), subtract the $50M Hercules loan <a class="ref" href="#s2">[2]</a>, and treat every option as exercised at fair value. The royalty-financing liability is excluded: uniQure has no obligation to repay it beyond the lowest HEMGENIX royalty tier it sold <a class="ref" href="#s2">[2]</a>, which I value at zero, as I do AMT-260, AMT-191 and the retained HEMGENIX economics. From the pre-tax engine: $36.91 + $1.68 (discounted to 1 October, not 1 January) − $1.89 (R&amp;D) − $5.77 (tax) − $0.58 (cash rolled from 30 June to 30 September) − $0.31 (dilution) = $30.04.</p>
+
+    <p><strong>Patients and price.</strong> 40,000 symptomatic patients in the US <a class="ref" href="#s2">[2]</a> and about 8,400 in the UK (12.3 per 100,000 <a class="ref" href="#s17">[17]</a> in a population of 68.3 million <a class="ref" href="#s18">[18]</a>) make 48,401. Of these, 23.4% are early-manifest, so 11,326 are eligible. The 23.4% is the early-stage share of Medicare (65+) prevalent cases <a class="ref" href="#s19">[19]</a>; applying it to all US and UK symptomatic patients is my extrapolation. It holds across ages: the same paper gives 22.6% for Medicaid patients under 65 <a class="ref" href="#s19">[19]</a>. Every pool percentage below uses the 11,326 as its denominator. I assume 75% are treated by 2037: 8,494 patients. That percentage is my assumption, and I have no source for it. My reason is that these patients have no therapy that slows the disease <a class="ref" href="#s2">[2]</a>, so the alternative to surgery is no treatment at all. Apart from capacity, it is the input the call is most exposed to: at 60% fair value is $26.49, at 50% $23.94, and below roughly half the eligible pool it falls under the price. Leerink gives $1.7M for the US and $1.0M for the EU without saying whether these are net, list or gross <a class="ref" href="#s13">[13]</a>; treating them as net is my assumption, and the UK takes Leerink's EU figure as a proxy.</p>
+
+    <p><strong>Capacity: this memo's own contribution.</strong> Each administration is an MRI-guided neurosurgical infusion into six sites deep in the brain, taking 8–10 hours <a class="ref" href="#s20">[20]</a>. uniQure calls it "a standard procedure for a neurosurgeon", counts "approximately 50 to 55 sites with the necessary neurosurgical expertise and imaging equipment" in answer to a question about US sites, and plans "a center of excellence strategy" at launch <a class="ref" href="#s21">[21]</a>. The constraint is not skill but suite time. Today's footprint is small: ClinicalTrials.gov lists 12 US sites for the Phase I/II study, one a non-surgical research site, so at most 11 have performed the procedure <a class="ref" href="#s22">[22]</a>; in the UK, Cardiff is the only surgical site <a class="ref" href="#s23">[23]</a>. My base case grows from 8 centres doing 6 cases a year in 2027 to 55 US and UK centres doing 25 by 2034: 1,375 patients and $2,170M a year. Fifty-five is in line with the CEO's US figure, not conservative against it. Twenty-five cases a centre is unproven for this procedure, not impossible: uniQure finds it "very challenging to give you one number" <a class="ref" href="#s10">[10]</a>, and high-volume US deep-brain-stimulation centres run 75 or more cases a year <a class="ref" href="#s24">[24]</a>. Twenty-five cases is 200–250 hours of suite time per centre a year. That number is mine.</p>
+
+    <p>The ramp from 8 to 55 centres and from 6 to 25 cases is where ecosystem growth already sits, and uniQure says it is "advancing our commercial preparations" <a class="ref" href="#s12">[12]</a>. A faster buildout is upside, in section 5, not counted here. The confirmatory study's treated arm needs the same surgery at the same centres; I give it none of these slots, which is generous to uniQure <a class="ref" href="#s10">[10]</a>.</p>
+
+    <p>Leerink's $2.5B peak is worldwide gross <a class="ref" href="#s13">[13]</a>, a ceiling on my US+UK model that never binds at Base or Low and clips High in 2032–34. Even if the US and UK carried all of it, 55 centres would need about 29 cases each a year: an upper bound, not an implied throughput.</p>
+
+    <p>Capacity changes timing, not patient count, until it doesn't. At High (55 centres × 40 cases) the same 8,494 patients are treated sooner (section 5). At Low (40 × 12) capacity peaks at 480 patients a year, the pool is never exhausted before exclusivity ends, cumulative revenue is $6,336M against $13,408M at Base, and $12.10 a share is lost (section 4).</p>
+
+    <p><strong>Exclusivity.</strong> Revenue ends in 2037, when the 75% has been treated, two years before exclusivity ends in 2039. That date rests on the 12-year exclusivity the BPCIA gives a biologic first licensed in 2027: statutory, but subject to the FDA's first-licensure determination, and uniQure says it intends to apply for all periods of exclusivity it may be eligible for <a class="ref" href="#s2">[2]</a>. A four-year extension of US patent 10,174,321, which expires on 23 December 2035 <a class="ref" href="#s25">[25]</a>, reaches the same date; the four is my assumption. Without either, protection ends with 2035: cumulative revenue falls to $11,166M and fair value by $2.93 (counting 2035, which the engine's convention drops).</p>
+
+    <p><strong>Not in the number:</strong> ex-US named-patient and early-access programmes, which a US or UK approval "would also unlock", per uniQure <a class="ref" href="#s10">[10]</a>; and Dutch tax losses, worth about $0.72 a share only if profit is taxed at the Dutch 25.8%, where fair value is $28.78. The pool is a fixed stock: it leaves out patients who reach the early-manifest stage after today and today's patients who progress past it before a slot opens. I assume the two offset.</p>
+  </section>
+
+  <section class="sec" id="wrong">
+    <span class="sec-num">4</span>
+    <h2 class="sec-h">What would make me wrong</h2>
+    <p><strong>An advisory committee weighs the four-year data over the three-year package</strong>: 44% cUHDRS slowing, not significant (p=0.144) <a class="ref" href="#s3">[3]</a>. The application fails.</p>
+    <p><strong>Centres stall.</strong> At Low capacity fair value is $17.94, and $23.37 needs an 89.8% PoS, above the 86.7% base rate for filed neurology applications <a class="ref" href="#s1">[1]</a>. No defensible PoS supports the price.</p>
+    <p><strong>The confirmatory study fails.</strong> Screening starts by end-2026 and the primary analysis is at three years <a class="ref" href="#s12">[12]</a>: a failure, and the "expedited withdrawal" it can bring <a class="ref" href="#s2">[2]</a>, lands after launch, with 84% of my present value (2031–37) still ahead.</p>
+    <p><strong>Price lands below $1.7M, or payers claw back on a fading effect.</strong> Net price is my assumption <a class="ref" href="#s13">[13]</a>. Fair value reaches $23.37 only at 69.3% of Leerink's prices ($1.18M US, $0.69M UK), a 31% cut.</p>
+    <p><strong>Protection ends with 2035:</strong> −$2.93, to $27.11.</p>
+    <p><strong>A rival takes patients.</strong> The 12-year exclusivity blocks only biosimilars <a class="ref" href="#s2">[2]</a>. Votoplam, a "small molecule splicing modifier", is in Phase 3 INVEST-HD: 770 participants, 3:2 against placebo, cUHDRS through month 36 as primary <a class="ref" href="#s26">[26]</a>; started 24 March 2026, completion listed for 30 April 2030 <a class="ref" href="#s27">[27]</a>. It requires a TFC of exactly 13, the top of a 0–13 scale <a class="ref" href="#s27">[27]</a><a class="ref" href="#s28">[28]</a>, so the trial overlaps only my pool's earliest slice; as "a small molecule that can be taken orally" <a class="ref" href="#s29">[29]</a>, it competes for patients, not surgical suites. By end-2030 my base case has treated 1,004 patients, 12% of its total. At 50% of the eligible pool treated, not 75%, fair value is $23.94, 2% above the price.</p>
+    <p><strong>Approval slips to 2029.</strong> Every AMT-130 cash flow moves two years and the company burns two more years of cash: −$6.54, to $23.50, 13 cents above the price. The asset survives; the trade doesn't.</p>
+  </section>
+
+  <section class="sec" id="mind">
+    <span class="sec-num">5</span>
+    <h2 class="sec-h">What would change my mind</h2>
+    <p><strong>Centre and throughput disclosure.</strong> uniQure plans to give "more color on launch strategy early next year" <a class="ref" href="#s12">[12]</a>. It is the first test of the capacity case, and it comes before the FDA's decision. Centre counts or cases per centre above my ramp move me toward High; below it, toward Low and section 4.</p>
+    <p><strong>Faster buildout: +$1.61.</strong> At High, Base centres reaching 40 cases a year by 2034, fair value is $31.65. The gain is small because the pool caps revenue: more capacity treats the same 8,494 patients sooner.</p>
+    <p><strong>A learning curve.</strong> If experienced centres cut the 8–10 hour procedure <a class="ref" href="#s20">[20]</a>, cases per centre rise without new suites.</p>
+    <p><strong>A bid.</strong> A buyer would also get AMT-260 and AMT-191, which I value at zero, so a bid would put a floor under the shares. It could also cap the upside below $30.04; the call assumes neither.</p>
+    <p><strong>Watch list, in date order.</strong> Mid-November: the FDA's day-74 letter on the BLA uniQure announced on 2 September <a class="ref" href="#s30">[30]</a>, which will include the agency's preliminary plans on whether to hold an advisory committee <a class="ref" href="#s31">[31]</a>; uniQure has requested priority review, which, if granted, would bring the decision six months after the 60-day filing period <a class="ref" href="#s30">[30]</a>. Early 2027: the launch-strategy update. Then the advisory committee, if the FDA holds one, ahead of the mid-2027 decision.</p>
+  </section>
+
+  <section class="sources" id="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li id="s0"><span class="k">—</span><span>Header: Nasdaq historical quotes, QURE close 1 Oct 2026. <a href="https://www.nasdaq.com/market-activity/stocks/qure/historical">nasdaq.com/market-activity/stocks/qure/historical</a>. uniQure Q2 2026 Form 10-Q (balance sheet, options and Hercules principal at 30 June; shares at 24 July). <a href="https://www.sec.gov/Archives/edgar/data/0001590560/000110465926087815/qure-20260630x10q.htm">sec.gov</a></span></li>
+      <li id="s1"><span class="k">[1]</span><span>BIO, Informa Pharma Intelligence, QLS Advisors, Clinical Development Success Rates and Contributing Factors 2011–2020 (February 2021), Fig. 5b, p. 10. <a href="https://go.bio.org/rs/490-EHZ-999/images/ClinicalDevelopmentSuccessRates2011_2020.pdf">go.bio.org</a></span></li>
+      <li id="s2"><span class="k">[2]</span><span>uniQure FY2025 Form 10-K, filed 2 Mar 2026. Quoted: p. 10 (40,000 symptomatic; no available therapy), p. 24 (biosimilar exclusivity), p. 58 (expedited withdrawal). On the Q2 2025 call the CEO cited "35,000 patients currently diagnosed" [21]; the pool uses the 10-K's 40,000 symptomatic, the figure in an SEC filing, not one given on a call. <a href="https://www.sec.gov/Archives/edgar/data/1590560/000110465926021898/qure-20251231x10k.htm">sec.gov</a></span></li>
+      <li id="s3"><span class="k">[3]</span><span>uniQure release, 29 Sep 2026 (four-year data). <a href="https://www.globenewswire.com/news-release/2026/09/29/3370692/0/en/uniqure-announces-additional-data-from-ongoing-phase-i-ii-studies-of-ifezuntirgene-inilparvovec-amt-130-in-huntington-s-disease-showing-continued-slowing-of-disease-progression.html">globenewswire.com</a></span></li>
+      <li id="s4"><span class="k">[4]</span><span>uniQure release, 24 Sep 2025 (36-month topline), 8-K Ex. 99.1. <a href="https://www.sec.gov/Archives/edgar/data/1590560/000110465925092740/qure-20250924xex99d1.htm">sec.gov</a></span></li>
+      <li id="s5"><span class="k">[5]</span><span>Ghofrani-Jahromi M, Poudel GR, Razi A, et al. NeuroImage: Clinical 2024;43:103650, Fig. 4. <a href="https://doi.org/10.1016/j.nicl.2024.103650">doi.org/10.1016/j.nicl.2024.103650</a></span></li>
+      <li id="s6"><span class="k">[6]</span><span>uniQure release, 10 Dec 2024. <a href="https://www.globenewswire.com/news-release/2024/12/10/2994386/0/en/uniQure-Announces-Alignment-with-FDA-on-Key-Elements-of-Accelerated-Approval-Pathway-for-AMT-130-in-Huntington-s-Disease.html">globenewswire.com</a></span></li>
+      <li id="s7"><span class="k">[7]</span><span>uniQure release, 3 Nov 2025. <a href="https://www.globenewswire.com/news-release/2025/11/03/3179114/0/en/uniqure-provides-regulatory-update-on-amt-130-for-huntington-s-disease.html">globenewswire.com</a></span></li>
+      <li id="s8"><span class="k">[8]</span><span>uniQure Form 8-K, 17 Jun 2026, Item 8.01. <a href="https://www.sec.gov/Archives/edgar/data/1590560/000110465926074853/tm2618105d1_8k.htm">sec.gov</a></span></li>
+      <li id="s9"><span class="k">[9]</span><span>PharmExec, 6 Mar 2026, citing Reuters, 5 Mar 2026. <a href="https://www.pharmexec.com/view/uniqure-fda-clash-regulatory-decision-huntington-disease-therapy-report">pharmexec.com</a></span></li>
+      <li id="s10"><span class="k">[10]</span><span>uniQure Q2 2026 earnings call, 29 Jul 2026 (transcript published 7 Aug 2026, The Motley Fool); cited only where no filing or release carries the statement. <a href="https://www.fool.com/earnings/call-transcripts/2026/08/07/uniqure-qure-q2-2026-earnings-call-transcript/">fool.com</a></span></li>
+      <li id="s11"><span class="k">[11]</span><span>uniQure Q2 2026 results release, 29 Jul 2026, 8-K Ex. 99.1. <a href="https://www.sec.gov/Archives/edgar/data/1590560/000110465926087808/qure-20260729xex99d1.htm">sec.gov</a></span></li>
+      <li id="s12"><span class="k">[12]</span><span>uniQure study-update call, 29 Sep 2026 (transcript, StockAnalysis). <a href="https://stockanalysis.com/stocks/qure/transcripts/760714-study-update/">stockanalysis.com</a></span></li>
+      <li id="s13"><span class="k">[13]</span><span>Investing.com, 18 Jun 2026 (Leerink). <a href="https://www.investing.com/news/analyst-ratings/leerink-raises-uniqure-stock-price-target-to-70-on-fda-reversal-93CH-4749630">investing.com</a></span></li>
+      <li id="s14"><span class="k">[14]</span><span>BioSpace, 29 Sep 2026 (Stifel). <a href="https://www.biospace.com/drug-development/uniqure-crashes-as-huntingtons-gene-therapy-shows-less-slowing-of-disease-at-4-years">biospace.com</a></span></li>
+      <li id="s15"><span class="k">[15]</span><span>Sarepta Therapeutics, Q4 and full-year 2024 results, 26 Feb 2025 (net product revenue $1,788.0M; cost of sales $319.1M; SG&amp;A $557.9M; 50.95%). <a href="https://www.businesswire.com/news/home/20250226046752/en/">businesswire.com</a></span></li>
+      <li id="s16"><span class="k">[16]</span><span>A. Damodaran, cost of capital by industry, January 2026: Drugs (Biotechnology) 8.49%. <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/wacc.html">pages.stern.nyu.edu</a></span></li>
+      <li id="s17"><span class="k">[17]</span><span>Evans SJW, Douglas I, Rawlins MD, et al. J Neurol Neurosurg Psychiatry 2013;84(10):1156–60. <a href="https://jnnp.bmj.com/content/84/10/1156">jnnp.bmj.com</a></span></li>
+      <li id="s18"><span class="k">[18]</span><span>ONS, Population estimates for the UK, mid-2023 (8 Oct 2024): 68.3 million. <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/bulletins/annualmidyearpopulationestimates/mid2023">ons.gov.uk</a></span></li>
+      <li id="s19"><span class="k">[19]</span><span>Exuzides A, Reddy SR, Chang E, et al. Neuroepidemiology 2022;56(3):192–200 (Medicare 2017 prevalent cases: early stage 23.4%). <a href="https://doi.org/10.1159/000524732">doi.org/10.1159/000524732</a></span></li>
+      <li id="s20"><span class="k">[20]</span><span>E. Minikel, CureFFI, 8 Oct 2025. <a href="https://www.cureffi.org/2025/10/08/amt-130/">cureffi.org</a></span></li>
+      <li id="s21"><span class="k">[21]</span><span>uniQure Q2 2025 earnings call, 29 Jul 2025 (transcript, Equibles). <a href="https://equibles.com/stocks/qure/calls/2025-q2">equibles.com</a></span></li>
+      <li id="s22"><span class="k">[22]</span><span>ClinicalTrials.gov NCT04120493, locations. <a href="https://classic.clinicaltrials.gov/ct2/show/record/NCT04120493">clinicaltrials.gov</a></span></li>
+      <li id="s23"><span class="k">[23]</span><span>Health and Care Research Wales, 26 Sep 2025. <a href="https://healthandcareresearchwales.org/about/news/wales-leads-pioneering-gene-therapy-trial-huntingtons-disease">healthandcareresearchwales.org</a></span></li>
+      <li id="s24"><span class="k">[24]</span><span>Prvulovic ST, et al. Stereotact Funct Neurosurg 2026. doi:10.1159/000551148</span></li>
+      <li id="s25"><span class="k">[25]</span><span>Google Patents, US 10,174,321 B2 (anticipated expiration 2035-12-23). <a href="https://patents.google.com/patent/US10174321B2/en">patents.google.com</a></span></li>
+      <li id="s26"><span class="k">[26]</span><span>PTC Therapeutics release, 28 Apr 2026 (votoplam description; INVEST-HD randomisation and primary endpoint). <a href="https://www.prnewswire.com/news-releases/ptc-therapeutics-reports-positive-topline-results-from-month-24-interim-analysis-of-pivot-hd-extension-study-of-votoplam-302756238.html">prnewswire.com</a></span></li>
+      <li id="s27"><span class="k">[27]</span><span>Novartis clinical trial listing, NCT07326709 (INVEST-HD): 770 participants; start 24 Mar 2026; completion 30 Apr 2030; inclusion "UHDRS TFC score = 13". <a href="https://www.novartis.com/clinicaltrials/study/nct07326709">novartis.com</a></span></li>
+      <li id="s28"><span class="k">[28]</span><span>van der Zwaan KF, Feleus S, Dekkers OM, et al. Total functioning capacity scale in Huntington's disease: natural course over time. J Neurol 2025;272(2):140. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11735551/">pmc.ncbi.nlm.nih.gov</a></span></li>
+      <li id="s29"><span class="k">[29]</span><span>PTC Therapeutics release, 20 Jun 2024 (PIVOT-HD month-12 interim): "PTC518, a small molecule that can be taken orally". PTC518 is votoplam's former name [26]. <a href="https://ir.ptcbio.com/news-releases/news-release-details/interim-pivot-hd-results-demonstrate-evidence-favorable-cns">ir.ptcbio.com</a></span></li>
+      <li id="s30"><span class="k">[30]</span><span>uniQure release, 2 Sep 2026 (BLA submission; priority review requested), 8-K Ex. 99.1. <a href="https://www.sec.gov/Archives/edgar/data/0001590560/000110465926104463/qure-20260902xex99d1.htm">sec.gov</a></span></li>
+      <li id="s31"><span class="k">[31]</span><span>FDA, PDUFA Reauthorization Performance Goals and Procedures, Fiscal Years 2023 Through 2027, section I.B.3 (Day 74 letter). <a href="https://www.fda.gov/media/151712/download">fda.gov</a></span></li>
+    </ol>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Daniel Haselbach. Built on the PoS + rNPV model: base rates from BIO / Informa / QLS 2021, every number traced to a named source. Not investment advice.</div>
+</footer>
+
+<script>
+  // If the PDF isn't next to this page (or the page is opened straight from disk,
+  // where browsers block the check), the PDF links fall back to the print dialog,
+  // where "Save as PDF" produces the memo from this page.
+  (function(){
+    var links = document.querySelectorAll('a[data-pdf]');
+    if (!links.length) return;
+    function usePrint(){
+      links.forEach(function(a){
+        a.removeAttribute('download');
+        a.title = 'Opens the print dialog: choose "Save as PDF"';
+        a.addEventListener('click', function(e){ e.preventDefault(); window.print(); });
+      });
+    }
+    try {
+      fetch(links[0].getAttribute('href'), {method:'HEAD', cache:'no-store'})
+        .then(function(r){ if (!r.ok && r.status !== 405) usePrint(); })
+        .catch(usePrint);
+    } catch (e) { usePrint(); }
+  })();
+</script>
+
+</body>
+</html>
